@@ -112,9 +112,15 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		 */
 		private function __construct() {
 
+			// i8n
+			//add_action('plugins_loaded', array($this, 'load_textdomain'));
+
 			// Admin scripts
 			add_action('admin_enqueue_scripts', array($this, 'register_scripts'));
 			add_action('admin_enqueue_scripts', array($this, 'register_styles'));
+
+			// Plugin action links
+			add_filter('plugin_action_links', array($this, 'plugin_action_links'), 10, 2);
 
 			// Frontend scripts
 			add_action('wp_enqueue_scripts', array($this, 'register_scripts'));
@@ -126,10 +132,10 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 
 			// Setting framework
 			add_action('admin_menu', array($this, 'admin_menu'), 99);
-			require_once(EXAMPLE_PLUGIN_DIR_PATH.'settings/settings-framework.php');
-			$this->settings_framework = new WordPressSettingsFramework(EXAMPLE_PLUGIN_DIR_PATH.'settings/example-settings.php', EXAMPLE_PLUGIN_OPTIONS);
+			require_once(EXAMPLE_PLUGIN_DIR_PATH.'settings-framework/settings-framework.php');
+			$this->settings_framework = new WordPressSettingsFramework(EXAMPLE_PLUGIN_DIR_PATH.'settings-framework/example-settings-framework.php', EXAMPLE_PLUGIN_OPTIONS);
 
-			// Add an optional settings validation filter (recommended)
+			// Add an optional settings-framework validation filter (recommended)
 			add_filter($this->settings_framework->get_option_group().'_settings_validate', array($this, 'validate_settings'));
 
 			// Run the plugin
@@ -173,7 +179,7 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		 *
 		 */
 		public function load_textdomain() {
-			load_plugin_textdomain('subscribr', FALSE, EXAMPLE_PLUGIN_DIR_PATH.'/lang');
+			load_plugin_textdomain(EXAMPLE_PLUGIN_PLUGIN_SLUG, FALSE, EXAMPLE_PLUGIN_DIR_PATH.'/lang');
 		}
 
 		/**
@@ -193,8 +199,8 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		 *
 		 */
 		public function admin_menu() {
-			add_menu_page(__('WPSF', 'wp-settings-framework'), __('WPSF', 'wp-settings-framework'), 'update_core', 'wpsf', array($this, 'settings_page'));
-			add_submenu_page('wpsf', __('Settings', 'wp-settings-framework'), __('Settings', 'wp-settings-framework'), 'update_core', 'wpsf', array($this, 'settings_page'));
+			add_menu_page(__('WPSF', 'example-plugin'), __('WPSF', 'example-plugin'), 'update_core', 'wpsf', array($this, 'settings_page'));
+			add_submenu_page('wpsf', __('Settings', 'example-plugin'), __('Settings', 'example-plugin'), 'update_core', 'wpsf', array($this, 'settings_page'));
 		}
 
 		/**
@@ -208,18 +214,18 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 				<div id="icon-options-general" class="icon32"></div>
 				<h2>Example Plugin</h2>
 				<?php
-				// Output settings form
+				// Output settings-framework form
 				$this->settings_framework->settings();
 				?>
 			</div>
 			<?php
 
-			// Get settings
-			$settings = wpsf_get_settings('my_example_settings');
-			//echo '<pre>'.print_r($settings, TRUE).'</pre>';
+			// Get settings-framework
+			//$settings = wpsf_get_settings('my_example_settings');
+			//echo '<pre>'.print_r($settings-framework, TRUE).'</pre>';
 
 			// Get individual setting
-			$setting = wpsf_get_setting('my_example_settings', 'general', 'text');
+			//$setting = wpsf_get_setting('my_example_settings', 'general', 'text');
 			//var_dump($setting);
 		}
 
@@ -234,6 +240,72 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		 */
 		public function validate_settings($input) {
 			return $input;
+		}
+
+		/**
+		 * Converts the settings-framework file name to option group id
+		 *
+		 * @param $settings_file string settings-framework file
+		 *
+		 * @return string option group id
+		 */
+		public function get_option_group($settings_file) {
+			$option_group = preg_replace("/[^a-z0-9]+/i", "", basename($settings_file, '.php'));
+			return $option_group;
+		}
+
+		/**
+		 * Get the settings-framework from a settings-framework file/option group
+		 *
+		 * @param $option_group string option group id
+		 *
+		 * @return array settings-framework
+		 */
+		public function get_settings($option_group) {
+			return get_option($option_group.'_settings');
+		}
+
+		/**
+		 * Get a setting from an option group
+		 *
+		 * @param $option_group string option group id
+		 * @param $section_id   string section id
+		 * @param $field_id     string field id
+		 *
+		 * @return mixed setting or false if no setting exists
+		 */
+		public function get_setting($option_group, $section_id, $field_id) {
+			$options = get_option($option_group.'_settings');
+			if(isset($options[$option_group.'_'.$section_id.'_'.$field_id])) {
+				return $options[$option_group.'_'.$section_id.'_'.$field_id];
+			}
+			return FALSE;
+		}
+
+		/**
+		 * Delete all the saved settings-framework from a settings-framework file/option group
+		 *
+		 * @param $option_group string option group id
+		 */
+		public function delete_settings($option_group) {
+			delete_option($option_group.'_settings');
+		}
+
+		/**
+		 *
+		 * Add settings link to plugins page
+		 *
+		 * @param $links
+		 * @param $file
+		 *
+		 * @return array
+		 */
+		public function plugin_action_links($links, $file) {
+			if($file == plugin_basename(__FILE__)) {
+				$settings_link = '<a href="options-general.php?page='.EXAMPLE_PLUGIN_PLUGIN_SLUG.'-settings" title="'.__('Email Subscribe Settings', 'example-plugin').'">'.__('Settings', 'example-plugin').'</a>';
+				array_unshift($links, $settings_link);
+			}
+			return $links;
 		}
 
 		/**

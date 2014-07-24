@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-if(!class_exists('WordPressSettingsFramework')) {
+if(!class_exists('WordPressSettingsFramework')) :
 	/**
 	 * WordPressSettingsFramework class
 	 */
@@ -45,7 +45,7 @@ if(!class_exists('WordPressSettingsFramework')) {
 		/**
 		 * Constructor
 		 *
-		 * @param string path to settings file
+		 * @param string path to settings-framework file
 		 * @param string optional "option_group" override
 		 */
 		public function __construct($settings_file, $option_group = '') {
@@ -62,7 +62,7 @@ if(!class_exists('WordPressSettingsFramework')) {
 			$this->settings = array();
 			$this->settings = apply_filters('wpsf_register_settings', $this->settings);
 			if(!is_array($this->settings)) {
-				return new WP_Error('broke', __('WPSF settings must be an array'));
+				return new WP_Error('broke', __('WPSF settings-framework must be an array'));
 			}
 
 			add_action('admin_init', array(&$this, 'admin_init'));
@@ -80,7 +80,7 @@ if(!class_exists('WordPressSettingsFramework')) {
 		}
 
 		/**
-		 * Registers the internal WordPress settings
+		 * Registers the internal WordPress settings-framework
 		 */
 		public function admin_init() {
 			register_setting($this->option_group, $this->option_group.'_settings', array(&$this, 'settings_validate'));
@@ -88,7 +88,7 @@ if(!class_exists('WordPressSettingsFramework')) {
 		}
 
 		/**
-		 * Displays any errors from the WordPress settings API
+		 * Displays any errors from the WordPress settings-framework API
 		 */
 		public function admin_notices() {
 			settings_errors();
@@ -108,18 +108,18 @@ if(!class_exists('WordPressSettingsFramework')) {
 		}
 
 		/**
-		 * Adds a filter for settings validation
+		 * Adds a filter for settings-framework validation
 		 *
-		 * @param array the un-validated settings
+		 * @param array the un-validated settings-framework
 		 *
-		 * @return array the validated settings
+		 * @return array the validated settings-framework
 		 */
 		public function settings_validate($input) {
 			return apply_filters($this->option_group.'_settings_validate', $input);
 		}
 
 		/**
-		 * Displays the "section_description" if specified in $this->settings
+		 * Displays the "section_description" if specified in $this->settings-framework
 		 *
 		 * @param array callback args from add_settings_section()
 		 */
@@ -137,7 +137,7 @@ if(!class_exists('WordPressSettingsFramework')) {
 		}
 
 		/**
-		 * Processes $this->settings and adds the sections and fields via the WordPress settings API
+		 * Processes $this->settings-framework and adds the sections and fields via the WordPress settings-framework API
 		 */
 		private function process_settings() {
 			if(!empty($this->settings)) {
@@ -164,7 +164,7 @@ if(!class_exists('WordPressSettingsFramework')) {
 		}
 
 		/**
-		 * Usort callback. Sorts $this->settings by "section_order"
+		 * Usort callback. Sorts $this->settings-framework by "section_order"
 		 *
 		 * @param mixed section order a
 		 * @param mixed section order b
@@ -176,7 +176,7 @@ if(!class_exists('WordPressSettingsFramework')) {
 		}
 
 		/**
-		 * Generates the HTML output of the settings fields
+		 * Generates the HTML output of the settings-framework fields
 		 *
 		 * @param array callback args from add_settings_field()
 		 */
@@ -314,7 +314,7 @@ if(!class_exists('WordPressSettingsFramework')) {
 		}
 
 		/**
-		 * Output the settings form
+		 * Output the settings-framework form
 		 */
 		public function settings() {
 			do_action('wpsf_before_settings');
@@ -329,61 +329,4 @@ if(!class_exists('WordPressSettingsFramework')) {
 			do_action('wpsf_after_settings');
 		}
 	}
-}
-
-if(!function_exists('wpsf_get_option_group')) {
-	/**
-	 * Converts the settings file name to option group id
-	 *
-	 * @param string settings file
-	 *
-	 * @return string option group id
-	 */
-	function wpsf_get_option_group($settings_file) {
-		$option_group = preg_replace("/[^a-z0-9]+/i", "", basename($settings_file, '.php'));
-		return $option_group;
-	}
-}
-
-if(!function_exists('wpsf_get_settings')) {
-	/**
-	 * Get the settings from a settings file/option group
-	 *
-	 * @param string option group id
-	 *
-	 * @return array settings
-	 */
-	function wpsf_get_settings($option_group) {
-		return get_option($option_group.'_settings');
-	}
-}
-
-if(!function_exists('wpsf_get_setting')) {
-	/**
-	 * Get a setting from an option group
-	 *
-	 * @param string option group id
-	 * @param string section id
-	 * @param string field id
-	 *
-	 * @return mixed setting or false if no setting exists
-	 */
-	function wpsf_get_setting($option_group, $section_id, $field_id) {
-		$options = get_option($option_group.'_settings');
-		if(isset($options[$option_group.'_'.$section_id.'_'.$field_id])) {
-			return $options[$option_group.'_'.$section_id.'_'.$field_id];
-		}
-		return FALSE;
-	}
-}
-
-if(!function_exists('wpsf_delete_settings')) {
-	/**
-	 * Delete all the saved settings from a settings file/option group
-	 *
-	 * @param string option group id
-	 */
-	function wpsf_delete_settings($option_group) {
-		delete_option($option_group.'_settings');
-	}
-}
+endif;

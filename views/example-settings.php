@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Define your settings
+ * Define your settings-framework
  */
 add_filter('wpsf_register_settings', 'wpsf_example_settings');
 function wpsf_example_settings($wpsf_settings) {
