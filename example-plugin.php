@@ -86,31 +86,16 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 	 */
 	class EXAMPLE_PLUGIN {
 
+		/**
+		 * @var SettingsFramework
+		 */
 		private $settings_framework;
-
-		private static $instance = NULL;
-
-		/**
-		 * @var $options - holds all plugin options
-		 */
-		public $options;
-
-		/**
-		 * Creates or returns an instance of this class.
-		 * (Singleton design pattern)
-		 */
-		public static function get_instance() {
-			if(NULL == self::$instance) {
-				self::$instance = new self;
-			}
-			return self::$instance;
-		}
 
 		/**
 		 * Initialize the plugin. Set up actions / filters.
 		 *
 		 */
-		private function __construct() {
+		public function __construct() {
 
 			// i8n
 			//add_action('plugins_loaded', array($this, 'load_textdomain'));
@@ -130,11 +115,10 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 			register_activation_hook(__FILE__, array($this, 'activate'));
 			register_deactivation_hook(__FILE__, array($this, 'deactivate'));
 
-			// Setting framework
+			// Settings Framework
 			add_action('admin_menu', array($this, 'admin_menu'), 99);
-			require_once(EXAMPLE_PLUGIN_DIR_PATH.'settings-framework/settings-framework.php');
-			$this->settings_framework = new WordPressSettingsFramework(EXAMPLE_PLUGIN_DIR_PATH.'settings-framework/example-settings-framework.php', EXAMPLE_PLUGIN_OPTIONS);
-
+			require_once(EXAMPLE_PLUGIN_DIR_PATH.'lib/settings-framework/settings-framework.php');
+			$this->settings_framework = new SettingsFramework(EXAMPLE_PLUGIN_DIR_PATH.'views/example-settings.php', EXAMPLE_PLUGIN_OPTIONS);
 			// Add an optional settings-framework validation filter (recommended)
 			add_filter($this->settings_framework->get_option_group().'_settings_validate', array($this, 'validate_settings'));
 
@@ -183,15 +167,31 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		}
 
 		/**
-		 * Activation code
+		 * Activation
 		 */
 		public function activate() {
 		}
 
 		/**
-		 * Deactivation code
+		 * Deactivation
 		 */
 		public function deactivate() {
+		}
+
+		/**
+		 * Install
+		 */
+		public function install() {
+		}
+
+		/**
+		 * Uninstall
+		 */
+		public function uninstall() {
+			// if uninstall is not called from WordPress exit
+			if(!defined('WP_UNINSTALL_PLUGIN')) {
+				exit ();
+			}
 		}
 
 		/**
@@ -199,8 +199,10 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		 *
 		 */
 		public function admin_menu() {
-			add_menu_page(__('WPSF', 'example-plugin'), __('WPSF', 'example-plugin'), 'update_core', 'wpsf', array($this, 'settings_page'));
-			add_submenu_page('wpsf', __('Settings', 'example-plugin'), __('Settings', 'example-plugin'), 'update_core', 'wpsf', array($this, 'settings_page'));
+			// top level page
+			//add_menu_page(__(EXAMPLE_PLUGIN_PLUGIN_NAME, 'example-plugin'), __(EXAMPLE_PLUGIN_PLUGIN_NAME, 'example-plugin'), 'manage_options', EXAMPLE_PLUGIN_PLUGIN_SLUG, array($this,'settings_page'));
+			// Settings page
+			add_submenu_page('options-general.php', __(EXAMPLE_PLUGIN_PLUGIN_NAME.' Settings', 'example-plugin'), __(EXAMPLE_PLUGIN_PLUGIN_NAME.' Settings', 'example-plugin'), 'manage_options', EXAMPLE_PLUGIN_PLUGIN_SLUG, array($this, 'settings_page'));
 		}
 
 		/**
@@ -212,7 +214,7 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 			?>
 			<div class="wrap">
 				<div id="icon-options-general" class="icon32"></div>
-				<h2>Example Plugin</h2>
+				<h2><?php echo EXAMPLE_PLUGIN_PLUGIN_NAME; ?></h2>
 				<?php
 				// Output settings-framework form
 				$this->settings_framework->settings();
@@ -221,12 +223,12 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 			<?php
 
 			// Get settings-framework
-			//$settings = wpsf_get_settings('my_example_settings');
-			//echo '<pre>'.print_r($settings-framework, TRUE).'</pre>';
+			$settings = $this->get_settings(EXAMPLE_PLUGIN_OPTIONS);
+			echo '<pre>'.print_r($settings, TRUE).'</pre>';
 
 			// Get individual setting
-			//$setting = wpsf_get_setting('my_example_settings', 'general', 'text');
-			//var_dump($setting);
+			$setting = $this->get_setting(EXAMPLE_PLUGIN_OPTIONS, 'general', 'text');
+			var_dump($setting);
 		}
 
 		/**
@@ -291,6 +293,8 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 			delete_option($option_group.'_settings');
 		}
 
+		// @todo add delete_setting singular
+
 		/**
 		 *
 		 * Add settings link to plugins page
@@ -302,7 +306,8 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		 */
 		public function plugin_action_links($links, $file) {
 			if($file == plugin_basename(__FILE__)) {
-				$settings_link = '<a href="options-general.php?page='.EXAMPLE_PLUGIN_PLUGIN_SLUG.'-settings" title="'.__('Email Subscribe Settings', 'example-plugin').'">'.__('Settings', 'example-plugin').'</a>';
+
+				$settings_link = '<a href="options-general.php?page='.EXAMPLE_PLUGIN_PLUGIN_SLUG.'" title="'.__(EXAMPLE_PLUGIN_PLUGIN_NAME, 'example-plugin').'">'.__('Settings', 'example-plugin').'</a>';
 				array_unshift($links, $settings_link);
 			}
 			return $links;
@@ -329,4 +334,6 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 
 endif;
 
-EXAMPLE_PLUGIN::get_instance();
+//EXAMPLE_PLUGIN::get_instance();
+
+$example_plugin = new EXAMPLE_PLUGIN();

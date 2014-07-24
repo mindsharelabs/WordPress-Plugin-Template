@@ -9,11 +9,11 @@
  * @license MIT
  */
 
-if(!class_exists('WordPressSettingsFramework')) :
+if(!class_exists('SettingsFramework')) :
 	/**
-	 * WordPressSettingsFramework class
+	 * SettingsFramework class
 	 */
-	class WordPressSettingsFramework {
+	class SettingsFramework {
 
 		/**
 		 * @access private
@@ -45,12 +45,12 @@ if(!class_exists('WordPressSettingsFramework')) :
 		/**
 		 * Constructor
 		 *
-		 * @param string path to settings-framework file
-		 * @param string optional "option_group" override
+		 * @param $settings_file string path to settings-framework file
+		 * @param $option_group  string optional "option_group" override
 		 */
 		public function __construct($settings_file, $option_group = '') {
 			if(!is_file($settings_file)) {
-				return;
+				exit(__('Settings file could not be found.', 'example-plugin'));
 			}
 			require_once($settings_file);
 
@@ -62,12 +62,12 @@ if(!class_exists('WordPressSettingsFramework')) :
 			$this->settings = array();
 			$this->settings = apply_filters('wpsf_register_settings', $this->settings);
 			if(!is_array($this->settings)) {
-				return new WP_Error('broke', __('WPSF settings-framework must be an array'));
+				exit(__('Settings framework must be an array', 'example-plugin'));
 			}
 
-			add_action('admin_init', array(&$this, 'admin_init'));
-			add_action('admin_notices', array(&$this, 'admin_notices'));
-			add_action('admin_enqueue_scripts', array(&$this, 'admin_enqueue_scripts'));
+			add_action('admin_init', array($this, 'admin_init'));
+			add_action('admin_notices', array($this, 'admin_notices'));
+			add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
 		}
 
 		/**
@@ -83,7 +83,7 @@ if(!class_exists('WordPressSettingsFramework')) :
 		 * Registers the internal WordPress settings-framework
 		 */
 		public function admin_init() {
-			register_setting($this->option_group, $this->option_group.'_settings', array(&$this, 'settings_validate'));
+			register_setting($this->option_group, $this->option_group.'_settings', array($this, 'settings_validate'));
 			$this->process_settings();
 		}
 
@@ -110,7 +110,7 @@ if(!class_exists('WordPressSettingsFramework')) :
 		/**
 		 * Adds a filter for settings-framework validation
 		 *
-		 * @param array the un-validated settings-framework
+		 * @param $input array the un-validated settings-framework
 		 *
 		 * @return array the validated settings-framework
 		 */
@@ -141,15 +141,15 @@ if(!class_exists('WordPressSettingsFramework')) :
 		 */
 		private function process_settings() {
 			if(!empty($this->settings)) {
-				usort($this->settings, array(&$this, 'sort_array'));
+				usort($this->settings, array($this, 'sort_array'));
 				foreach($this->settings as $section) {
 					if(isset($section['section_id']) && $section['section_id'] && isset($section['section_title'])) {
-						add_settings_section($section['section_id'], $section['section_title'], array(&$this, 'section_intro'), $this->option_group);
+						add_settings_section($section['section_id'], $section['section_title'], array($this, 'section_intro'), $this->option_group);
 						if(isset($section['fields']) && is_array($section['fields']) && !empty($section['fields'])) {
 							foreach($section['fields'] as $field) {
 								if(isset($field['id']) && $field['id'] && isset($field['title'])) {
 									add_settings_field($field['id'], $field['title'], array(
-										&$this,
+										$this,
 										'generate_setting'
 									), $this->option_group, $section['section_id'], array(
 										'section' => $section,
@@ -317,6 +317,8 @@ if(!class_exists('WordPressSettingsFramework')) :
 		 * Output the settings-framework form
 		 */
 		public function settings() {
+			// @todo add uninstall
+			// @todo add restore defaults
 			do_action('wpsf_before_settings');
 			?>
 			<form action="options.php" method="post">

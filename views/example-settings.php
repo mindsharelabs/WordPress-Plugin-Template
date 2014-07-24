@@ -1,13 +1,14 @@
 <?php
 
 /**
- * Define your settings-framework
+ * Example settings page
  */
-add_filter('wpsf_register_settings', 'wpsf_example_settings');
-function wpsf_example_settings($wpsf_settings) {
+add_filter('wpsf_register_settings', 'EXAMPLE_PLUGIN_settings');
+
+function EXAMPLE_PLUGIN_settings($settings) {
 
 	// General Settings section
-	$wpsf_settings[] = array(
+	$settings[] = array(
 		'section_id'          => 'general',
 		'section_title'       => 'General Settings',
 		'section_description' => 'Some intro description about this section.',
@@ -108,7 +109,7 @@ function wpsf_example_settings($wpsf_settings) {
 	);
 
 	// More Settings section
-	$wpsf_settings[] = array(
+	$settings[] = array(
 		'section_id'    => 'more',
 		'section_title' => 'More Settings',
 		'section_order' => 10,
@@ -123,5 +124,5 @@ function wpsf_example_settings($wpsf_settings) {
 		)
 	);
 
-	return $wpsf_settings;
+	return $settings;
 }
