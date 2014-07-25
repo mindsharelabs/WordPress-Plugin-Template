@@ -3,17 +3,13 @@
 /**
  * WordPress Settings Framework
  *
- * @author  Gilbert Pellegrom
- * @link    https://github.com/gilbitron/WordPress-Settings-Framework
- * @version 1.5.0
- * @license MIT
  */
 
-if(!class_exists('SettingsFramework')) :
+if(!class_exists('example_plugin_settings')) :
 	/**
-	 * SettingsFramework class
+	 * example_plugin_settings class
 	 */
-	class SettingsFramework {
+	class example_plugin_settings {
 
 		/**
 		 * @access private
@@ -43,24 +39,37 @@ if(!class_exists('SettingsFramework')) :
 		);
 
 		/**
+		 * @var bool
+		 */
+		public $show_reset_button = TRUE;
+
+		/**
+		 * @var bool
+		 */
+		public $show_uninstall_button = TRUE;
+
+		/**
 		 * Constructor
 		 *
-		 * @param $settings_file string path to settings-framework file
+		 * @param $settings_file string path to settings page file
 		 * @param $option_group  string optional "option_group" override
 		 */
 		public function __construct($settings_file, $option_group = '') {
+			global $example_plugin;
 			if(!is_file($settings_file)) {
 				exit(__('Settings file could not be found.', 'example-plugin'));
 			}
 			require_once($settings_file);
 
-			$this->option_group = preg_replace("/[^a-z0-9]+/i", "", basename($settings_file, '.php'));
+			// use the manually specified option_group name or generate one based on the filename
 			if($option_group) {
 				$this->option_group = $option_group;
+			} else {
+				$this->option_group = $example_plugin->get_option_group(basename($settings_file, '.php'));
 			}
 
 			$this->settings = array();
-			$this->settings = apply_filters('wpsf_register_settings', $this->settings);
+			$this->settings = apply_filters('example_plugin_register_settings', $this->settings);
 			if(!is_array($this->settings)) {
 				exit(__('Settings framework must be an array', 'example-plugin'));
 			}
@@ -80,15 +89,15 @@ if(!class_exists('SettingsFramework')) :
 		}
 
 		/**
-		 * Registers the internal WordPress settings-framework
+		 * Registers the internal WordPress settings
 		 */
 		public function admin_init() {
-			register_setting($this->option_group, $this->option_group.'_settings', array($this, 'settings_validate'));
+			register_setting($this->option_group, $this->option_group, array($this, 'settings_validate'));
 			$this->process_settings();
 		}
 
 		/**
-		 * Displays any errors from the WordPress settings-framework API
+		 * Displays any errors from the WordPress settings API
 		 */
 		public function admin_notices() {
 			settings_errors();
@@ -108,18 +117,18 @@ if(!class_exists('SettingsFramework')) :
 		}
 
 		/**
-		 * Adds a filter for settings-framework validation
+		 * Adds a filter for settings validation
 		 *
-		 * @param $input array the un-validated settings-framework
+		 * @param $input array the un-validated settings
 		 *
-		 * @return array the validated settings-framework
+		 * @return array the validated settings
 		 */
 		public function settings_validate($input) {
-			return apply_filters($this->option_group.'_settings_validate', $input);
+			return apply_filters($this->option_group.'_validate', $input);
 		}
 
 		/**
-		 * Displays the "section_description" if specified in $this->settings-framework
+		 * Displays the "section_description" if specified in $this->settings
 		 *
 		 * @param array callback args from add_settings_section()
 		 */
@@ -137,7 +146,7 @@ if(!class_exists('SettingsFramework')) :
 		}
 
 		/**
-		 * Processes $this->settings-framework and adds the sections and fields via the WordPress settings-framework API
+		 * Processes $this->settings and adds the sections and fields via the WordPress settings API
 		 */
 		private function process_settings() {
 			if(!empty($this->settings)) {
@@ -164,10 +173,10 @@ if(!class_exists('SettingsFramework')) :
 		}
 
 		/**
-		 * Usort callback. Sorts $this->settings-framework by "section_order"
+		 * Usort callback. Sorts $this->settings by "section_order"
 		 *
-		 * @param mixed section order a
-		 * @param mixed section order b
+		 * @param  $a mixed section order a
+		 * @param  $b mixed section order b
 		 *
 		 * @return int order
 		 */
@@ -176,46 +185,46 @@ if(!class_exists('SettingsFramework')) :
 		}
 
 		/**
-		 * Generates the HTML output of the settings-framework fields
+		 * Generates the HTML output of the settings fields
 		 *
 		 * @param array callback args from add_settings_field()
 		 */
 		public function generate_setting($args) {
 			$section = $args['section'];
-			$this->setting_defaults = apply_filters('wpsf_defaults', $this->setting_defaults);
+			$this->setting_defaults = apply_filters('example_plugin_defaults', $this->setting_defaults);
 			extract(wp_parse_args($args['field'], $this->setting_defaults));
 
-			$options = get_option($this->option_group.'_settings');
+			$options = get_option($this->option_group);
 			$el_id = $this->option_group.'_'.$section['section_id'].'_'.$id;
 			$val = (isset($options[$el_id])) ? $options[$el_id] : $std;
 
-			do_action('wpsf_before_field');
-			do_action('wpsf_before_field_'.$el_id);
+			do_action('example_plugin_before_field');
+			do_action('example_plugin_before_field_'.$el_id);
 			switch($type) {
 				case 'text':
 					$val = esc_attr(stripslashes($val));
-					echo '<input type="text" name="'.$this->option_group.'_settings['.$el_id.']" id="'.$el_id.'" value="'.$val.'" placeholder="'.$placeholder.'" class="regular-text '.$class.'" />';
+					echo '<input type="text" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="'.$val.'" placeholder="'.$placeholder.'" class="regular-text '.$class.'" />';
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
 					}
 					break;
 				case 'password':
 					$val = esc_attr(stripslashes($val));
-					echo '<input type="password" name="'.$this->option_group.'_settings['.$el_id.']" id="'.$el_id.'" value="'.$val.'" placeholder="'.$placeholder.'" class="regular-text '.$class.'" />';
+					echo '<input type="password" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="'.$val.'" placeholder="'.$placeholder.'" class="regular-text '.$class.'" />';
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
 					}
 					break;
 				case 'textarea':
 					$val = esc_html(stripslashes($val));
-					echo '<textarea name="'.$this->option_group.'_settings['.$el_id.']" id="'.$el_id.'" placeholder="'.$placeholder.'" rows="5" cols="60" class="'.$class.'">'.$val.'</textarea>';
+					echo '<textarea name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" placeholder="'.$placeholder.'" rows="5" cols="60" class="'.$class.'">'.$val.'</textarea>';
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
 					}
 					break;
 				case 'select':
 					$val = esc_html(esc_attr($val));
-					echo '<select name="'.$this->option_group.'_settings['.$el_id.']" id="'.$el_id.'" class="'.$class.'">';
+					echo '<select name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" class="'.$class.'">';
 					foreach($choices as $ckey => $cval) {
 						echo '<option value="'.$ckey.'"'.(($ckey == $val) ? ' selected="selected"' : '').'>'.$cval.'</option>';
 					}
@@ -227,7 +236,7 @@ if(!class_exists('SettingsFramework')) :
 				case 'radio':
 					$val = esc_html(esc_attr($val));
 					foreach($choices as $ckey => $cval) {
-						echo '<label><input type="radio" name="'.$this->option_group.'_settings['.$el_id.']" id="'.$el_id.'_'.$ckey.'" value="'.$ckey.'" class="'.$class.'"'.(($ckey == $val) ? ' checked="checked"' : '').' /> '.$cval.'</label><br />';
+						echo '<label><input type="radio" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'_'.$ckey.'" value="'.$ckey.'" class="'.$class.'"'.(($ckey == $val) ? ' checked="checked"' : '').' /> '.$cval.'</label><br />';
 					}
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
@@ -235,8 +244,8 @@ if(!class_exists('SettingsFramework')) :
 					break;
 				case 'checkbox':
 					$val = esc_attr(stripslashes($val));
-					echo '<input type="hidden" name="'.$this->option_group.'_settings['.$el_id.']" value="0" />';
-					echo '<label><input type="checkbox" name="'.$this->option_group.'_settings['.$el_id.']" id="'.$el_id.'" value="1" class="'.$class.'"'.(($val) ? ' checked="checked"' : '').' /> '.$desc.'</label>';
+					echo '<input type="hidden" name="'.$this->option_group.'['.$el_id.']" value="0" />';
+					echo '<label><input type="checkbox" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="1" class="'.$class.'"'.(($val) ? ' checked="checked"' : '').' /> '.$desc.'</label>';
 					break;
 				case 'checkboxes':
 					foreach($choices as $ckey => $cval) {
@@ -247,8 +256,8 @@ if(!class_exists('SettingsFramework')) :
 							$val = $ckey;
 						}
 						$val = esc_html(esc_attr($val));
-						echo '<input type="hidden" name="'.$this->option_group.'_settings['.$el_id.'_'.$ckey.']" value="0" />';
-						echo '<label><input type="checkbox" name="'.$this->option_group.'_settings['.$el_id.'_'.$ckey.']" id="'.$el_id.'_'.$ckey.'" value="'.$ckey.'" class="'.$class.'"'.(($ckey == $val) ? ' checked="checked"' : '').' /> '.$cval.'</label><br />';
+						echo '<input type="hidden" name="'.$this->option_group.'['.$el_id.'_'.$ckey.']" value="0" />';
+						echo '<label><input type="checkbox" name="'.$this->option_group.'['.$el_id.'_'.$ckey.']" id="'.$el_id.'_'.$ckey.'" value="'.$ckey.'" class="'.$class.'"'.(($ckey == $val) ? ' checked="checked"' : '').' /> '.$cval.'</label><br />';
 					}
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
@@ -257,7 +266,7 @@ if(!class_exists('SettingsFramework')) :
 				case 'color':
 					$val = esc_attr(stripslashes($val));
 					echo '<div style="position:relative;">';
-					echo '<input type="text" name="'.$this->option_group.'_settings['.$el_id.']" id="'.$el_id.'" value="'.$val.'" class="'.$class.'" />';
+					echo '<input type="text" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="'.$val.'" class="'.$class.'" />';
 					echo '<div id="'.$el_id.'_cp" style="position:absolute;top:0;left:190px;background:#fff;z-index:9999;"></div>';
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
@@ -279,7 +288,7 @@ if(!class_exists('SettingsFramework')) :
 					break;
 				case 'file':
 					$val = esc_attr($val);
-					echo '<input type="text" name="'.$this->option_group.'_settings['.$el_id.']" id="'.$el_id.'" value="'.$val.'" class="regular-text '.$class.'" /> ';
+					echo '<input type="text" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="'.$val.'" class="regular-text '.$class.'" /> ';
 					echo '<input type="button" class="button wpsf-browse" id="'.$el_id.'_button" value="Browse" />';
 					echo '<script type="text/javascript">
                     jQuery(document).ready(function($){
@@ -298,7 +307,7 @@ if(!class_exists('SettingsFramework')) :
                     </script>';
 					break;
 				case 'editor':
-					wp_editor($val, $el_id, array('textarea_name' => $this->option_group.'_settings['.$el_id.']'));
+					wp_editor($val, $el_id, array('textarea_name' => $this->option_group.'['.$el_id.']'));
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
 					}
@@ -309,26 +318,90 @@ if(!class_exists('SettingsFramework')) :
 				default:
 					break;
 			}
-			do_action('wpsf_after_field');
-			do_action('wpsf_after_field_'.$el_id);
+			do_action('example_plugin_after_field');
+			do_action('example_plugin_after_field_'.$el_id);
 		}
 
 		/**
-		 * Output the settings-framework form
+		 * Output the settings form
 		 */
 		public function settings() {
-			// @todo add uninstall
-			// @todo add restore defaults
-			do_action('wpsf_before_settings');
+
+
+			// @todo finish adding i8n functions for text
+
+			if(isset($_POST['example_plugin_uninstall'])) {
+				check_admin_referer('example-plugin-uninstall');
+				delete_option($this->option_group);
+				?>
+				<div class="updated">
+					<p><?php _e('All options have been removed from the database.', 'example-plugin'); ?>
+
+						<?php
+						if(is_string(EXAMPLE_PLUGIN_PLUGIN_SLUG)) {
+							$deactivate_url = 'plugins.php?action=deactivate&amp;plugin='.EXAMPLE_PLUGIN_PLUGIN_SLUG.'/'.EXAMPLE_PLUGIN_PLUGIN_SLUG.'.php';
+							$deactivate_url = wp_nonce_url($deactivate_url, 'deactivate-plugin_'.EXAMPLE_PLUGIN_PLUGIN_SLUG.'/'.EXAMPLE_PLUGIN_PLUGIN_SLUG.'.php');
+						} else {
+							$deactivate_url = admin_url('plugins.php');
+						}
+						?>
+						To complete the uninstall <a href="<?php echo $deactivate_url; ?>">deactivate <?php echo EXAMPLE_PLUGIN_PLUGIN_NAME ?>.</a>
+					</p>
+				</div>
+				<?php
+				return;
+			}
+
+			if(isset($_POST['example_plugin_reset'])) {
+				check_admin_referer('example-plugin-reset');
+				delete_option($this->option_group);
+				?>
+				<div class="updated">
+					<p><?php _e('All options have been restored to their default values.', 'example-plugin'); ?></p>
+				</div>
+			<?php
+			}
+
+			do_action('example_plugin_before_settings');
 			?>
 			<form action="options.php" method="post">
-				<?php do_action('wpsf_before_settings_fields'); ?>
+
+				<?php do_action('example_plugin_before_settings_fields'); ?>
 				<?php settings_fields($this->option_group); ?>
 				<?php do_settings_sections($this->option_group); ?>
-				<p class="submit"><input type="submit" class="button-primary" value="<?php _e('Save Changes'); ?>" /></p>
+				<?php do_action('example_plugin_after_settings_fields'); ?>
+
+				<p class="submit">
+					<input type="submit" class="button-primary" value="<?php _e('Save Changes', 'example-plugin'); ?>" />
+
+					<?php if($this->show_reset_button == TRUE) : ?>
+						<input class="button-secondary" type="button" value="<?php _e('Restore Defaults', 'example-plugin'); ?>" onclick="document.getElementById('example-plugin-reset').style.display = 'block';document.getElementById('example-plugin-uninst').style.display = 'none';" />
+					<?php endif; ?>
+
+					<?php if($this->show_uninstall_button == TRUE) : ?>
+						<input class="button-secondary" type="button" value="<?php _e('Uninstall', 'example-plugin'); ?>" onclick="document.getElementById('example-plugin-uninst').style.display = 'block';document.getElementById('example-plugin-reset').style.display = 'none';" />
+					<?php endif; ?>
+				</p>
 			</form>
+
+			<div id="example-plugin-reset" style="display:none; clear: both;">
+				<form method="post" action="">
+					<?php wp_nonce_field('example-plugin-reset'); ?>
+					<label style="font-weight:normal;">Do you wish to <strong>completely reset</strong> the default options for <?php echo EXAMPLE_PLUGIN_PLUGIN_NAME ?>?</label>
+					<input class="button-secondary" type="button" name="cancel" value="<?php _e('Cancel', 'example-plugin'); ?>" onclick="document.getElementById('example-plugin-reset').style.display='none';" style="margin-left:20px" />
+					<input class="button-primary" type="submit" name="example_plugin_reset" value="Restore Defaults" />
+				</form>
+			</div>
+			<div id="example-plugin-uninst" style="display:none; clear: both;">
+				<form method="post" action="">
+					<?php wp_nonce_field('example-plugin-uninstall'); ?>
+					<label style="font-weight:normal;">Do you wish to <strong>completely uninstall</strong>  <?php echo EXAMPLE_PLUGIN_PLUGIN_NAME ?>?</label>
+					<input class="button-secondary" type="button" name="cancel" value="<?php _e('Cancel', 'example-plugin'); ?>" onclick="document.getElementById('example-plugin-uninst').style.display = 'none';" style="margin-left:20px" />
+					<input class="button-primary" type="submit" name="example_plugin_uninstall" value="Uninstall" />
+				</form>
+			</div>
 			<?php
-			do_action('wpsf_after_settings');
+			do_action('example_plugin_after_settings');
 		}
 	}
 endif;

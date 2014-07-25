@@ -3,9 +3,9 @@
 /**
  * Example settings page
  */
-add_filter('wpsf_register_settings', 'EXAMPLE_PLUGIN_settings');
+add_filter('example_plugin_register_settings', 'example_plugin_settings');
 
-function EXAMPLE_PLUGIN_settings($settings) {
+function example_plugin_settings($settings) {
 
 	// General Settings section
 	$settings[] = array(
@@ -28,7 +28,7 @@ function EXAMPLE_PLUGIN_settings($settings) {
 				'desc'        => 'This is a description.',
 				'placeholder' => 'This is a placeholder.',
 				'type'        => 'password',
-				'std'         => 'Example'
+				'std'         => 'Password'
 			),
 			array(
 				'id'          => 'textarea',

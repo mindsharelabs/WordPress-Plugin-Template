@@ -1,23 +1,33 @@
 <?php
 /*
-Plugin Name: WP Settings Framework Example
-Plugin URI: http://mindsharelabs.com/products/
-Description: A WordPress plugin...
+Plugin Name: Example Plugin
+Plugin URI: http://mindsharelabs.com/
+Description: Example Plugin
 Version: 0.1
 Author: Mindshare Studios, Inc.
 Author URI: http://mind.sh/are/
 License: GNU General Public License
-License URI: license.txt
+License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 Text Domain: example-plugin
 Domain Path: /lang
 */
+
+/*
+ * INSTRUCTIONS:
+ *
+ * Search and replace the following strings:
+ * "EXAMPLE_PLUGIN", "example-plugin", "$example_plugin", "example_plugin", "Example Plugin"
+ * with the appropriate alternates for your plugin.
+ *
+ *
+ */
 
 /**
  *
  * Copyright 2014  Mindshare Studios, Inc. (http://mind.sh/are/)
  *
- * Based on the WP Settings Framework by Gilbert Pellegrom http://dev7studios.com
- * and on the WordPress Plugin Boilerplate by Christopher Lamm http://www.theantichris.com
+ * Plugin template was forked from the WP Settings Framework by Gilbert Pellegrom http://dev7studios.com
+ * and the WordPress Plugin Boilerplate by Christopher Lamm http://www.theantichris.com
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License, version 3, as
@@ -87,7 +97,7 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 	class EXAMPLE_PLUGIN {
 
 		/**
-		 * @var SettingsFramework
+		 * @var example_plugin_settings
 		 */
 		private $settings_framework;
 
@@ -97,7 +107,7 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		 */
 		public function __construct() {
 
-			// i8n
+			// i8n, uncomment for translation support
 			//add_action('plugins_loaded', array($this, 'load_textdomain'));
 
 			// Admin scripts
@@ -115,12 +125,19 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 			register_activation_hook(__FILE__, array($this, 'activate'));
 			register_deactivation_hook(__FILE__, array($this, 'deactivate'));
 
+			// Uninstall hook
+			register_uninstall_hook(EXAMPLE_PLUGIN_DIR_PATH.'uninstall.php', NULL);
+
 			// Settings Framework
 			add_action('admin_menu', array($this, 'admin_menu'), 99);
 			require_once(EXAMPLE_PLUGIN_DIR_PATH.'lib/settings-framework/settings-framework.php');
-			$this->settings_framework = new SettingsFramework(EXAMPLE_PLUGIN_DIR_PATH.'views/example-settings.php', EXAMPLE_PLUGIN_OPTIONS);
-			// Add an optional settings-framework validation filter (recommended)
-			add_filter($this->settings_framework->get_option_group().'_settings_validate', array($this, 'validate_settings'));
+			$this->settings_framework = new example_plugin_settings(EXAMPLE_PLUGIN_DIR_PATH.'views/settings.php', EXAMPLE_PLUGIN_OPTIONS);
+			// Add an optional settings validation filter (recommended)
+			add_filter($this->settings_framework->get_option_group().'_validate', array($this, 'validate_settings'));
+
+			// uncomment to disable the Uninstall and Reset Default buttons
+			//$this->settings_framework->show_reset_button = FALSE;
+			//$this->settings_framework->show_uninstall_button = FALSE;
 
 			// Run the plugin
 			$this->run();
@@ -185,16 +202,6 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		}
 
 		/**
-		 * Uninstall
-		 */
-		public function uninstall() {
-			// if uninstall is not called from WordPress exit
-			if(!defined('WP_UNINSTALL_PLUGIN')) {
-				exit ();
-			}
-		}
-
-		/**
 		 * WordPress options page
 		 *
 		 */
@@ -202,7 +209,10 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 			// top level page
 			//add_menu_page(__(EXAMPLE_PLUGIN_PLUGIN_NAME, 'example-plugin'), __(EXAMPLE_PLUGIN_PLUGIN_NAME, 'example-plugin'), 'manage_options', EXAMPLE_PLUGIN_PLUGIN_SLUG, array($this,'settings_page'));
 			// Settings page
-			add_submenu_page('options-general.php', __(EXAMPLE_PLUGIN_PLUGIN_NAME.' Settings', 'example-plugin'), __(EXAMPLE_PLUGIN_PLUGIN_NAME.' Settings', 'example-plugin'), 'manage_options', EXAMPLE_PLUGIN_PLUGIN_SLUG, array($this, 'settings_page'));
+			add_submenu_page('options-general.php', __(EXAMPLE_PLUGIN_PLUGIN_NAME.' Settings', 'example-plugin'), __(EXAMPLE_PLUGIN_PLUGIN_NAME.' Settings', 'example-plugin'), 'manage_options', EXAMPLE_PLUGIN_PLUGIN_SLUG, array(
+				$this,
+				'settings_page'
+			));
 		}
 
 		/**
@@ -222,13 +232,13 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 			</div>
 			<?php
 
-			// Get settings-framework
-			$settings = $this->get_settings(EXAMPLE_PLUGIN_OPTIONS);
-			echo '<pre>'.print_r($settings, TRUE).'</pre>';
+			// Get settings
+			//$settings = $this->get_settings(EXAMPLE_PLUGIN_OPTIONS);
+			//echo '<pre>'.print_r($settings, TRUE).'</pre>';
 
 			// Get individual setting
-			$setting = $this->get_setting(EXAMPLE_PLUGIN_OPTIONS, 'general', 'text');
-			var_dump($setting);
+			//$setting = $this->get_setting(EXAMPLE_PLUGIN_OPTIONS, 'general', 'text');
+			//var_dump($setting);
 		}
 
 		/**
@@ -245,7 +255,7 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		}
 
 		/**
-		 * Converts the settings-framework file name to option group id
+		 * Converts the settings-framework filename to option group id
 		 *
 		 * @param $settings_file string settings-framework file
 		 *
@@ -257,14 +267,14 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		}
 
 		/**
-		 * Get the settings-framework from a settings-framework file/option group
+		 * Get the settings from a settings-framework file/option group
 		 *
 		 * @param $option_group string option group id
 		 *
-		 * @return array settings-framework
+		 * @return array settings
 		 */
 		public function get_settings($option_group) {
-			return get_option($option_group.'_settings');
+			return get_option($option_group);
 		}
 
 		/**
@@ -277,7 +287,7 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		 * @return mixed setting or false if no setting exists
 		 */
 		public function get_setting($option_group, $section_id, $field_id) {
-			$options = get_option($option_group.'_settings');
+			$options = get_option($option_group);
 			if(isset($options[$option_group.'_'.$section_id.'_'.$field_id])) {
 				return $options[$option_group.'_'.$section_id.'_'.$field_id];
 			}
@@ -285,19 +295,35 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		}
 
 		/**
-		 * Delete all the saved settings-framework from a settings-framework file/option group
+		 * Delete all the saved settings from a settings-framework file/option group
 		 *
 		 * @param $option_group string option group id
 		 */
 		public function delete_settings($option_group) {
-			delete_option($option_group.'_settings');
+			delete_option($option_group);
 		}
 
-		// @todo add delete_setting singular
+		/**
+		 * Deletes a setting from an option group
+		 *
+		 * @param $option_group string option group id
+		 * @param $section_id   string section id
+		 * @param $field_id     string field id
+		 *
+		 * @return mixed setting or false if no setting exists
+		 */
+		public function delete_setting($option_group, $section_id, $field_id) {
+			$options = get_option($option_group);
+			if(isset($options[$option_group.'_'.$section_id.'_'.$field_id])) {
+				$options[$option_group.'_'.$section_id.'_'.$field_id] = NULL;
+				return update_option($option_group, $options);
+			}
+			return FALSE;
+		}
 
 		/**
 		 *
-		 * Add settings link to plugins page
+		 * Add a settings link to plugins page
 		 *
 		 * @param $links
 		 * @param $file
@@ -306,7 +332,6 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 		 */
 		public function plugin_action_links($links, $file) {
 			if($file == plugin_basename(__FILE__)) {
-
 				$settings_link = '<a href="options-general.php?page='.EXAMPLE_PLUGIN_PLUGIN_SLUG.'" title="'.__(EXAMPLE_PLUGIN_PLUGIN_NAME, 'example-plugin').'">'.__('Settings', 'example-plugin').'</a>';
 				array_unshift($links, $settings_link);
 			}
@@ -333,7 +358,5 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 	}
 
 endif;
-
-//EXAMPLE_PLUGIN::get_instance();
 
 $example_plugin = new EXAMPLE_PLUGIN();
