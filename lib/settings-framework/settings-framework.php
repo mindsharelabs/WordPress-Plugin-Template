@@ -75,7 +75,7 @@ if(!class_exists('example_plugin_settings')) :
 			}
 
 			add_action('admin_init', array($this, 'admin_init'));
-			add_action('admin_notices', array($this, 'admin_notices'));
+			//add_action('admin_notices', array($this, 'admin_notices'));
 			add_action('admin_enqueue_scripts', array($this, 'admin_enqueue_scripts'));
 		}
 
@@ -195,36 +195,36 @@ if(!class_exists('example_plugin_settings')) :
 			extract(wp_parse_args($args['field'], $this->setting_defaults));
 
 			$options = get_option($this->option_group);
-			$el_id = $this->option_group.'_'.$section['section_id'].'_'.$id;
-			$val = (isset($options[$el_id])) ? $options[$el_id] : $std;
+			$field_id = $this->option_group.'_'.$section['section_id'].'_'.$id;
+			$val = (isset($options[$field_id])) ? $options[$field_id] : $std;
 
 			do_action('example_plugin_before_field');
-			do_action('example_plugin_before_field_'.$el_id);
+			do_action('example_plugin_before_field_'.$field_id);
 			switch($type) {
 				case 'text':
 					$val = esc_attr(stripslashes($val));
-					echo '<input type="text" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="'.$val.'" placeholder="'.$placeholder.'" class="regular-text '.$class.'" />';
+					echo '<input type="text" name="'.$this->option_group.'['.$field_id.']" id="'.$field_id.'" value="'.$val.'" placeholder="'.$placeholder.'" class="regular-text '.$class.'" />';
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
 					}
 					break;
 				case 'password':
 					$val = esc_attr(stripslashes($val));
-					echo '<input type="password" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="'.$val.'" placeholder="'.$placeholder.'" class="regular-text '.$class.'" />';
+					echo '<input type="password" name="'.$this->option_group.'['.$field_id.']" id="'.$field_id.'" value="'.$val.'" placeholder="'.$placeholder.'" class="regular-text '.$class.'" />';
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
 					}
 					break;
 				case 'textarea':
 					$val = esc_html(stripslashes($val));
-					echo '<textarea name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" placeholder="'.$placeholder.'" rows="5" cols="60" class="'.$class.'">'.$val.'</textarea>';
+					echo '<textarea name="'.$this->option_group.'['.$field_id.']" id="'.$field_id.'" placeholder="'.$placeholder.'" rows="5" cols="60" class="'.$class.'">'.$val.'</textarea>';
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
 					}
 					break;
 				case 'select':
 					$val = esc_html(esc_attr($val));
-					echo '<select name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" class="'.$class.'">';
+					echo '<select name="'.$this->option_group.'['.$field_id.']" id="'.$field_id.'" class="'.$class.'">';
 					foreach($choices as $ckey => $cval) {
 						echo '<option value="'.$ckey.'"'.(($ckey == $val) ? ' selected="selected"' : '').'>'.$cval.'</option>';
 					}
@@ -236,7 +236,7 @@ if(!class_exists('example_plugin_settings')) :
 				case 'radio':
 					$val = esc_html(esc_attr($val));
 					foreach($choices as $ckey => $cval) {
-						echo '<label><input type="radio" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'_'.$ckey.'" value="'.$ckey.'" class="'.$class.'"'.(($ckey == $val) ? ' checked="checked"' : '').' /> '.$cval.'</label><br />';
+						echo '<label><input type="radio" name="'.$this->option_group.'['.$field_id.']" id="'.$field_id.'_'.$ckey.'" value="'.$ckey.'" class="'.$class.'"'.(($ckey == $val) ? ' checked="checked"' : '').' /> '.$cval.'</label><br />';
 					}
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
@@ -244,20 +244,20 @@ if(!class_exists('example_plugin_settings')) :
 					break;
 				case 'checkbox':
 					$val = esc_attr(stripslashes($val));
-					echo '<input type="hidden" name="'.$this->option_group.'['.$el_id.']" value="0" />';
-					echo '<label><input type="checkbox" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="1" class="'.$class.'"'.(($val) ? ' checked="checked"' : '').' /> '.$desc.'</label>';
+					echo '<input type="hidden" name="'.$this->option_group.'['.$field_id.']" value="0" />';
+					echo '<label><input type="checkbox" name="'.$this->option_group.'['.$field_id.']" id="'.$field_id.'" value="1" class="'.$class.'"'.(($val) ? ' checked="checked"' : '').' /> '.$desc.'</label>';
 					break;
 				case 'checkboxes':
 					foreach($choices as $ckey => $cval) {
 						$val = '';
-						if(isset($options[$el_id.'_'.$ckey])) {
-							$val = $options[$el_id.'_'.$ckey];
+						if(isset($options[$field_id.'_'.$ckey])) {
+							$val = $options[$field_id.'_'.$ckey];
 						} elseif(is_array($std) && in_array($ckey, $std)) {
 							$val = $ckey;
 						}
 						$val = esc_html(esc_attr($val));
-						echo '<input type="hidden" name="'.$this->option_group.'['.$el_id.'_'.$ckey.']" value="0" />';
-						echo '<label><input type="checkbox" name="'.$this->option_group.'['.$el_id.'_'.$ckey.']" id="'.$el_id.'_'.$ckey.'" value="'.$ckey.'" class="'.$class.'"'.(($ckey == $val) ? ' checked="checked"' : '').' /> '.$cval.'</label><br />';
+						echo '<input type="hidden" name="'.$this->option_group.'['.$field_id.'_'.$ckey.']" value="0" />';
+						echo '<label><input type="checkbox" name="'.$this->option_group.'['.$field_id.'_'.$ckey.']" id="'.$field_id.'_'.$ckey.'" value="'.$ckey.'" class="'.$class.'"'.(($ckey == $val) ? ' checked="checked"' : '').' /> '.$cval.'</label><br />';
 					}
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
@@ -266,20 +266,20 @@ if(!class_exists('example_plugin_settings')) :
 				case 'color':
 					$val = esc_attr(stripslashes($val));
 					echo '<div style="position:relative;">';
-					echo '<input type="text" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="'.$val.'" class="'.$class.'" />';
-					echo '<div id="'.$el_id.'_cp" style="position:absolute;top:0;left:190px;background:#fff;z-index:9999;"></div>';
+					echo '<input type="text" name="'.$this->option_group.'['.$field_id.']" id="'.$field_id.'" value="'.$val.'" class="'.$class.'" />';
+					echo '<div id="'.$field_id.'_cp" style="position:absolute;top:0;left:190px;background:#fff;z-index:9999;"></div>';
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
 					}
 					echo '<script type="text/javascript">
     		        jQuery(document).ready(function($){
-                        var colorPicker = $("#'.$el_id.'_cp");
-                        colorPicker.farbtastic("#'.$el_id.'");
+                        var colorPicker = $("#'.$field_id.'_cp");
+                        colorPicker.farbtastic("#'.$field_id.'");
                         colorPicker.hide();
-                        $("#'.$el_id.'").live("focus", function(){
+                        $("#'.$field_id.'").live("focus", function(){
                             colorPicker.show();
                         });
-                        $("#'.$el_id.'").live("blur", function(){
+                        $("#'.$field_id.'").live("blur", function(){
                             colorPicker.hide();
                             if($(this).val() == "") $(this).val("#");
                         });
@@ -288,16 +288,16 @@ if(!class_exists('example_plugin_settings')) :
 					break;
 				case 'file':
 					$val = esc_attr($val);
-					echo '<input type="text" name="'.$this->option_group.'['.$el_id.']" id="'.$el_id.'" value="'.$val.'" class="regular-text '.$class.'" /> ';
-					echo '<input type="button" class="button wpsf-browse" id="'.$el_id.'_button" value="Browse" />';
+					echo '<input type="text" name="'.$this->option_group.'['.$field_id.']" id="'.$field_id.'" value="'.$val.'" class="regular-text '.$class.'" /> ';
+					echo '<input type="button" class="button wpsf-browse" id="'.$field_id.'_button" value="Browse" />';
 					echo '<script type="text/javascript">
                     jQuery(document).ready(function($){
-                		$("#'.$el_id.'_button").click(function() {
+                		$("#'.$field_id.'_button").click(function() {
                 			tb_show("", "media-upload.php?post_id=0&amp;type=image&amp;TB_iframe=true");
                 			window.original_send_to_editor = window.send_to_editor;
                         	window.send_to_editor = function(html) {
                         		var imgurl = $("img",html).attr("src");
-                        		$("#'.$el_id.'").val(imgurl);
+                        		$("#'.$field_id.'").val(imgurl);
                         		tb_remove();
                         		window.send_to_editor = window.original_send_to_editor;
                         	};
@@ -307,7 +307,7 @@ if(!class_exists('example_plugin_settings')) :
                     </script>';
 					break;
 				case 'editor':
-					wp_editor($val, $el_id, array('textarea_name' => $this->option_group.'['.$el_id.']'));
+					wp_editor($val, $field_id, array('textarea_name' => $this->option_group.'['.$field_id.']'));
 					if($desc) {
 						echo '<p class="description">'.$desc.'</p>';
 					}
@@ -316,10 +316,12 @@ if(!class_exists('example_plugin_settings')) :
 					echo $std;
 					break;
 				default:
+					// action to add custom field types
+					do_action('example_plugin_custom_field');
 					break;
 			}
 			do_action('example_plugin_after_field');
-			do_action('example_plugin_after_field_'.$el_id);
+			do_action('example_plugin_after_field_'.$field_id);
 		}
 
 		/**
@@ -327,25 +329,23 @@ if(!class_exists('example_plugin_settings')) :
 		 */
 		public function settings() {
 
-
-			// @todo finish adding i8n functions for text
-
 			if(isset($_POST['example_plugin_uninstall'])) {
-				check_admin_referer('example-plugin-uninstall');
+				check_admin_referer('example-plugin-uninstall', 'example-plugin-uninstall-nonce');
 				delete_option($this->option_group);
 				?>
 				<div class="updated">
 					<p><?php _e('All options have been removed from the database.', 'example-plugin'); ?>
 
 						<?php
-						if(is_string(EXAMPLE_PLUGIN_PLUGIN_SLUG)) {
+						if(defined('EXAMPLE_PLUGIN_PLUGIN_SLUG') && EXAMPLE_PLUGIN_PLUGIN_SLUG != '') {
 							$deactivate_url = 'plugins.php?action=deactivate&amp;plugin='.EXAMPLE_PLUGIN_PLUGIN_SLUG.'/'.EXAMPLE_PLUGIN_PLUGIN_SLUG.'.php';
 							$deactivate_url = wp_nonce_url($deactivate_url, 'deactivate-plugin_'.EXAMPLE_PLUGIN_PLUGIN_SLUG.'/'.EXAMPLE_PLUGIN_PLUGIN_SLUG.'.php');
 						} else {
 							$deactivate_url = admin_url('plugins.php');
 						}
 						?>
-						To complete the uninstall <a href="<?php echo $deactivate_url; ?>">deactivate <?php echo EXAMPLE_PLUGIN_PLUGIN_NAME ?>.</a>
+
+						<?php printf(__('To complete the uninstall <a href="%1$s"">deactivate %2$s.</a>', 'example-plugin'), esc_url($deactivate_url), EXAMPLE_PLUGIN_PLUGIN_NAME); ?>
 					</p>
 				</div>
 				<?php
@@ -353,7 +353,7 @@ if(!class_exists('example_plugin_settings')) :
 			}
 
 			if(isset($_POST['example_plugin_reset'])) {
-				check_admin_referer('example-plugin-reset');
+				check_admin_referer('example-plugin-reset', 'example-plugin-reset-nonce');
 				delete_option($this->option_group);
 				?>
 				<div class="updated">
@@ -365,7 +365,6 @@ if(!class_exists('example_plugin_settings')) :
 			do_action('example_plugin_before_settings');
 			?>
 			<form action="options.php" method="post">
-
 				<?php do_action('example_plugin_before_settings_fields'); ?>
 				<?php settings_fields($this->option_group); ?>
 				<?php do_settings_sections($this->option_group); ?>
@@ -386,16 +385,18 @@ if(!class_exists('example_plugin_settings')) :
 
 			<div id="example-plugin-reset" style="display:none; clear: both;">
 				<form method="post" action="">
-					<?php wp_nonce_field('example-plugin-reset'); ?>
-					<label style="font-weight:normal;">Do you wish to <strong>completely reset</strong> the default options for <?php echo EXAMPLE_PLUGIN_PLUGIN_NAME ?>?</label>
+					<?php wp_nonce_field('example-plugin-reset', 'example-plugin-reset-nonce'); ?>
+					<label style="font-weight:normal;">
+						<?php printf(__('Do you wish to <strong>completely reset</strong> the default options for', 'example-plugin')); ?> <?php echo EXAMPLE_PLUGIN_PLUGIN_NAME ?>? </label>
 					<input class="button-secondary" type="button" name="cancel" value="<?php _e('Cancel', 'example-plugin'); ?>" onclick="document.getElementById('example-plugin-reset').style.display='none';" style="margin-left:20px" />
 					<input class="button-primary" type="submit" name="example_plugin_reset" value="Restore Defaults" />
 				</form>
 			</div>
 			<div id="example-plugin-uninst" style="display:none; clear: both;">
 				<form method="post" action="">
-					<?php wp_nonce_field('example-plugin-uninstall'); ?>
-					<label style="font-weight:normal;">Do you wish to <strong>completely uninstall</strong>  <?php echo EXAMPLE_PLUGIN_PLUGIN_NAME ?>?</label>
+					<?php wp_nonce_field('example-plugin-uninstall', 'example-plugin-uninstall-nonce'); ?>
+					<label style="font-weight:normal;">
+						<?php echo sprintf(__('Do you wish to <strong>completely uninstall</strong>', 'example-plugin')); ?> <?php echo EXAMPLE_PLUGIN_PLUGIN_NAME ?>?</label>
 					<input class="button-secondary" type="button" name="cancel" value="<?php _e('Cancel', 'example-plugin'); ?>" onclick="document.getElementById('example-plugin-uninst').style.display = 'none';" style="margin-left:20px" />
 					<input class="button-primary" type="submit" name="example_plugin_uninstall" value="Uninstall" />
 				</form>

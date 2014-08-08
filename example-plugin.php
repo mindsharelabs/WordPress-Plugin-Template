@@ -64,7 +64,7 @@ if(!defined('EXAMPLE_PLUGIN_PLUGIN_NAME')) {
 }
 
 if(!defined('EXAMPLE_PLUGIN_PLUGIN_SLUG')) {
-	define('EXAMPLE_PLUGIN_PLUGIN_SLUG', dirname(plugin_basename(__FILE__))); // plugin-slug
+	define('EXAMPLE_PLUGIN_PLUGIN_SLUG', dirname(plugin_basename(__FILE__))); // example-plugin
 }
 
 if(!defined('EXAMPLE_PLUGIN_DIR_PATH')) {
@@ -111,8 +111,8 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 			//add_action('plugins_loaded', array($this, 'load_textdomain'));
 
 			// Admin scripts
-			add_action('admin_enqueue_scripts', array($this, 'register_scripts'));
-			add_action('admin_enqueue_scripts', array($this, 'register_styles'));
+			add_action('admin_enqueue_scripts', array($this, 'register_admin_scripts'));
+			add_action('admin_enqueue_scripts', array($this, 'register_admin_styles'));
 
 			// Plugin action links
 			add_filter('plugin_action_links', array($this, 'plugin_action_links'), 10, 2);
@@ -139,8 +139,19 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 			//$this->settings_framework->show_reset_button = FALSE;
 			//$this->settings_framework->show_uninstall_button = FALSE;
 
-			// Run the plugin
-			$this->run();
+			add_action('init', array($this, 'init'), 0, 0); // filterable init action
+
+			$this->run(); // non-filterable init action
+		}
+
+		/**
+		 * Allows user to override the default action used to enqueue scripts.
+		 * See FAQ in readme.txt for usage.
+		 *
+		 */
+		public function init() {
+			$init_action = apply_filters('example_plugin_init_action', 'init');
+			add_action($init_action, array($this, 'cdnjs_scripts'));
 		}
 
 		/**
@@ -336,6 +347,25 @@ if(!class_exists('EXAMPLE_PLUGIN')) :
 				array_unshift($links, $settings_link);
 			}
 			return $links;
+		}
+
+		/**
+		 * Enqueue and register JavaScript
+		 */
+		public function register_admin_scripts() {
+
+			/*wp_register_script('example-plugin', EXAMPLE_PLUGIN_DIR_URL.'/assets/js/example-plugin.js');
+			$translation_array = array(
+				'js_handle' => __('Text to use in JavaScript', 'example-plugin')
+			);
+			wp_localize_script('example-plugin', 'example_plugin_text', $translation_array);
+			wp_enqueue_script('example-plugin');*/
+		}
+
+		/**
+		 * Enqueue and register Adnmin CSS
+		 */
+		public function register_admin_styles() {
 		}
 
 		/**
